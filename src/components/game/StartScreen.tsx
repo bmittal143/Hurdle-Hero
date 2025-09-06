@@ -17,9 +17,9 @@ interface StartScreenProps {
 }
 
 const characterSkins = [
-    { name: 'Hero', url: 'https://picsum.photos/80/120?random=1', hint: 'superhero side profile' },
-    { name: 'Goku', url: 'https://picsum.photos/80/120?random=2', hint: 'goku anime sprite' },
-    { name: 'Naruto', url: 'https://picsum.photos/80/120?random=3', hint: 'naruto anime sprite' },
+    { name: 'Hero', url: '/hero.png', hint: 'superhero side profile' },
+    { name: 'Goku', url: '/goku.png', hint: 'goku anime sprite' },
+    { name: 'Naruto', url: '/naruto.png', hint: 'naruto anime sprite' },
 ];
 
 const StartScreen: React.FC<StartScreenProps> = ({ onStart, highScore }) => {
