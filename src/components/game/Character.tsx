@@ -13,16 +13,9 @@ interface CharacterProps {
     width: number;
     height: number;
   };
-  skin: number | string;
+  skin: string;
   shieldTimer: number;
 }
-
-const characterSkins = [
-    'bg-primary', // Default Orange
-    'bg-blue-500',
-    'bg-green-500',
-    'bg-purple-500',
-];
 
 const Character: React.FC<CharacterProps> = ({ character, skin, shieldTimer }) => {
   const { y, isCrouching, width, height } = character;
@@ -35,34 +28,22 @@ const Character: React.FC<CharacterProps> = ({ character, skin, shieldTimer }) =
     transition: 'height 0.1s ease-out',
   };
 
-  const isCustomSkin = typeof skin === 'string';
-  const skinClass = !isCustomSkin ? characterSkins[skin as number] || characterSkins[0] : '';
-
   return (
-    <div style={characterStyle} className="absolute z-10">
+    <div style={characterStyle} className="absolute z-10 flex items-center justify-center">
       {shieldTimer > 0 && (
         <div className="absolute -inset-2 rounded-full bg-accent/50 animate-pulse" />
       )}
-      {isCustomSkin ? (
-        <Image
-          src={skin}
-          alt="Custom character"
-          width={width}
-          height={height}
-          className={cn(
-            "w-full h-full object-cover rounded-md shadow-lg transform duration-100",
-            isCrouching ? 'scale-y-90' : '',
-          )}
-        />
-      ) : (
-        <div
-          className={cn(
-            "w-full h-full rounded-md shadow-lg transform duration-100",
-            skinClass,
-            isCrouching ? 'scale-y-90' : '',
-          )}
-        />
-      )}
+      <Image
+        src={skin}
+        alt="Character"
+        width={width}
+        height={height}
+        className={cn(
+          "w-full h-full object-contain shadow-lg transform duration-100",
+          isCrouching ? 'scale-y-90' : '',
+        )}
+        unoptimized
+      />
     </div>
   );
 };

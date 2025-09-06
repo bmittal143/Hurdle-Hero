@@ -1,43 +1,51 @@
 "use client";
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { ArrowUp, ArrowDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React, { useRef } from 'react';
 
 interface OnScreenControlsProps {
   onJump: () => void;
   onCrouch: (isCrouching: boolean) => void;
-  disableCrouch?: boolean;
 }
 
-const OnScreenControls: React.FC<OnScreenControlsProps> = ({ onJump, onCrouch, disableCrouch }) => {
-  const handleCrouchStart = () => onCrouch(true);
-  const handleCrouchEnd = () => onCrouch(false);
+const OnScreenControls: React.FC<OnScreenControlsProps> = ({ onJump, onCrouch }) => {
+  const touchStartY = useRef(0);
+  const touchCrouchActive = useRef(false);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touchY = e.touches[0].clientY;
+    const deltaY = touchY - touchStartY.current;
+
+    if (deltaY < -30) { // Swipe Up
+      onJump();
+      touchStartY.current = touchY; // Reset start position to prevent multiple jumps
+    } else if (deltaY > 30) { // Swipe Down
+      if (!touchCrouchActive.current) {
+        onCrouch(true);
+        touchCrouchActive.current = true;
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (touchCrouchActive.current) {
+      onCrouch(false);
+      touchCrouchActive.current = false;
+    }
+    touchStartY.current = 0;
+  };
 
   return (
-    <div className="fixed bottom-5 left-0 right-0 flex justify-around items-center z-50 px-4">
-      <Button
-        onClick={onJump}
-        className="w-24 h-24 rounded-full bg-primary/80 text-primary-foreground text-lg backdrop-blur-sm"
-        aria-label="Jump"
-      >
-        <ArrowUp size={48} />
-      </Button>
-      {!disableCrouch && (
-        <Button
-          onTouchStart={handleCrouchStart}
-          onTouchEnd={handleCrouchEnd}
-          onMouseDown={handleCrouchStart}
-          onMouseUp={handleCrouchEnd}
-          onMouseLeave={handleCrouchEnd}
-          className="w-24 h-24 rounded-full bg-primary/80 text-primary-foreground text-lg backdrop-blur-sm"
-          aria-label="Crouch"
-        >
-          <ArrowDown size={48} />
-        </Button>
-      )}
-    </div>
+    <div
+      className="fixed inset-0 z-40"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      aria-label="Game controls"
+    />
   );
 };
 

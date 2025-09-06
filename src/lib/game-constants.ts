@@ -8,9 +8,9 @@ export const GROUND_HEIGHT = 50;
 
 // Character
 export const CHARACTER_X_POSITION = 50;
-export const CHARACTER_WIDTH = 40;
-export const CHARACTER_HEIGHT_NORMAL = 60;
-export const CHARACTER_HEIGHT_CROUCH = 30;
+export const CHARACTER_WIDTH = 50;
+export const CHARACTER_HEIGHT_NORMAL = 80;
+export const CHARACTER_HEIGHT_CROUCH = 40;
 
 // Physics
 export const JUMP_VELOCITY = 800;
@@ -23,7 +23,7 @@ export const GAME_SPEED_INCREMENT = 0.5;
 export const HURDLE_WIDTH = 30;
 export const HURDLE_HEIGHT_LOW = 40;
 export const HURDLE_HEIGHT_HIGH = 55;
-export const HURDLE_SPAWN_INTERVAL = { MIN: 3.5, MAX: 5.5 };
+export const HURDLE_SPAWN_INTERVAL = { MIN: 4.5, MAX: 6.5 };
 
 // Power-ups
 export const POWERUP_WIDTH = 30;

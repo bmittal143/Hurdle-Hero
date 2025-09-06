@@ -45,7 +45,6 @@ interface State {
   nextHurdleIn: number;
   nextPowerUpIn: number;
   theme: number;
-  isFlappyMode: boolean;
 }
 
 type Action =
@@ -79,7 +78,6 @@ const initialState: State = {
   nextHurdleIn: 2,
   nextPowerUpIn: C.POWERUP_SPAWN_INTERVAL.MIN,
   theme: 0,
-  isFlappyMode: false,
 };
 
 function gameReducer(state: State, action: Action): State {
@@ -95,13 +93,6 @@ function gameReducer(state: State, action: Action): State {
         gameState: 'playing',
       };
     case 'JUMP':
-      if (state.isFlappyMode) {
-        soundManager.playJump();
-        return {
-          ...state,
-          character: { ...state.character, vy: C.FLAPPY_JUMP_VELOCITY, isJumping: true },
-        };
-      }
       if (state.character.jumpCount < 2) {
         soundManager.playJump();
         return {
@@ -148,10 +139,6 @@ function gameReducer(state: State, action: Action): State {
       const newScore = state.score + deltaTime * state.gameSpeed * 2;
       const newGameSpeed = state.gameSpeed + C.GAME_SPEED_INCREMENT * deltaTime;
       const newShieldTimer = Math.max(0, state.shieldTimer - deltaTime);
-
-      // Check for flappy mode
-      const isFlappyMode = newScore >= 2000;
-
 
       // Update Obstacles
       const updatedObstacles = state.obstacles
@@ -204,9 +191,9 @@ function gameReducer(state: State, action: Action): State {
         const newHurdle: Obstacle = {
           id: obstacleIdCounter++,
           x: C.GAME_WIDTH,
-          y: isFlappyMode ? C.GROUND_HEIGHT + Math.random() * (C.GAME_HEIGHT - 200) : C.GROUND_HEIGHT,
+          y: C.GROUND_HEIGHT,
           width: C.HURDLE_WIDTH,
-          height: isFlappyMode ? 150 + Math.random() * 50 : (isHigh ? C.HURDLE_HEIGHT_HIGH : C.HURDLE_HEIGHT_LOW),
+          height: isHigh ? C.HURDLE_HEIGHT_HIGH : C.HURDLE_HEIGHT_LOW,
           type: 'hurdle',
         };
         newObstacles.push(newHurdle);
@@ -240,7 +227,6 @@ function gameReducer(state: State, action: Action): State {
         nextHurdleIn,
         nextPowerUpIn,
         theme: newTheme,
-        isFlappyMode,
       };
     default:
       return state;
@@ -250,7 +236,7 @@ function gameReducer(state: State, action: Action): State {
 
 export default function Home() {
   const [state, dispatch] = useReducer(gameReducer, initialState);
-  const [characterSkin, setCharacterSkin] = useState<number | string>(0);
+  const [characterSkin, setCharacterSkin] = useState<string>('https://picsum.photos/80/120');
   const [highScore, setHighScore] = useState(0);
   const isMobile = useIsMobile();
   const lastTimeRef = useRef<number | null>(null);
@@ -260,7 +246,7 @@ export default function Home() {
     setHighScore(Number(localStorage.getItem('hurdleHeroHighScore') || 0));
   }, []);
 
-  const handleStartGame = useCallback((skin: number | string) => {
+  const handleStartGame = useCallback((skin: string) => {
     soundManager.startAudio();
     soundManager.playBGM();
     setCharacterSkin(skin);
@@ -277,10 +263,10 @@ export default function Home() {
   }, [state.gameState]);
 
   const handleCrouch = useCallback((isDown: boolean) => {
-      if(state.gameState === 'playing' && !state.isFlappyMode) {
+      if(state.gameState === 'playing') {
           dispatch({type: isDown ? 'CROUCH_START' : 'CROUCH_END'})
       }
-  }, [state.gameState, state.isFlappyMode]);
+  }, [state.gameState]);
 
 
   useEffect(() => {
@@ -289,13 +275,13 @@ export default function Home() {
         e.preventDefault();
         handleJump();
       }
-      if (e.code === 'ArrowDown' && !state.isFlappyMode) {
+      if (e.code === 'ArrowDown') {
         e.preventDefault();
         handleCrouch(true);
       }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === 'ArrowDown' && !state.isFlappyMode) {
+      if (e.code === 'ArrowDown') {
         e.preventDefault();
         handleCrouch(false);
       }
@@ -307,7 +293,7 @@ export default function Home() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     }
-  }, [handleJump, handleCrouch, state.isFlappyMode]);
+  }, [handleJump, handleCrouch]);
 
   const gameLoop = useCallback((time: number) => {
     if (!lastTimeRef.current) {
@@ -396,21 +382,16 @@ export default function Home() {
              <div className="absolute top-4 right-4 text-lg font-bold text-primary-foreground bg-primary/80 px-3 py-1 rounded-lg shadow-md z-30">
               HI: {Math.floor(highScore)}
             </div>
-            {state.isFlappyMode && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl font-bold text-white/50 animate-pulse z-0">
-                    FLAPPY MODE
-                </div>
-            )}
           </>
         )}
       </div>
       {isMobile && state.gameState === 'playing' && (
-        <OnScreenControls onJump={handleJump} onCrouch={handleCrouch} disableCrouch={state.isFlappyMode} />
+        <OnScreenControls onJump={handleJump} onCrouch={handleCrouch} />
       )}
       <p className="mt-4 text-muted-foreground text-center text-sm">
         Use [↑] or [Space] to Jump, [↓] to Crouch.
         <br />
-        Double jump is enabled. After 2000 points, it's Flappy time!
+        Double jump is enabled. Good luck!
       </p>
     </main>
   );
