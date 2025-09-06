@@ -3,13 +3,15 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowUp, ArrowDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface OnScreenControlsProps {
   onJump: () => void;
   onCrouch: (isCrouching: boolean) => void;
+  disableCrouch?: boolean;
 }
 
-const OnScreenControls: React.FC<OnScreenControlsProps> = ({ onJump, onCrouch }) => {
+const OnScreenControls: React.FC<OnScreenControlsProps> = ({ onJump, onCrouch, disableCrouch }) => {
   const handleCrouchStart = () => onCrouch(true);
   const handleCrouchEnd = () => onCrouch(false);
 
@@ -22,17 +24,19 @@ const OnScreenControls: React.FC<OnScreenControlsProps> = ({ onJump, onCrouch })
       >
         <ArrowUp size={48} />
       </Button>
-      <Button
-        onTouchStart={handleCrouchStart}
-        onTouchEnd={handleCrouchEnd}
-        onMouseDown={handleCrouchStart}
-        onMouseUp={handleCrouchEnd}
-        onMouseLeave={handleCrouchEnd}
-        className="w-24 h-24 rounded-full bg-primary/80 text-primary-foreground text-lg backdrop-blur-sm"
-        aria-label="Crouch"
-      >
-        <ArrowDown size={48} />
-      </Button>
+      {!disableCrouch && (
+        <Button
+          onTouchStart={handleCrouchStart}
+          onTouchEnd={handleCrouchEnd}
+          onMouseDown={handleCrouchStart}
+          onMouseUp={handleCrouchEnd}
+          onMouseLeave={handleCrouchEnd}
+          className="w-24 h-24 rounded-full bg-primary/80 text-primary-foreground text-lg backdrop-blur-sm"
+          aria-label="Crouch"
+        >
+          <ArrowDown size={48} />
+        </Button>
+      )}
     </div>
   );
 };

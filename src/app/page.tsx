@@ -22,6 +22,7 @@ interface CharacterState {
   isCrouching: boolean;
   width: number;
   height: number;
+  jumpCount: number;
 }
 
 interface Obstacle {
@@ -44,6 +45,7 @@ interface State {
   nextHurdleIn: number;
   nextPowerUpIn: number;
   theme: number;
+  isFlappyMode: boolean;
 }
 
 type Action =
@@ -64,6 +66,7 @@ const initialCharacterState: CharacterState = {
   isCrouching: false,
   width: C.CHARACTER_WIDTH,
   height: C.CHARACTER_HEIGHT_NORMAL,
+  jumpCount: 0,
 };
 
 const initialState: State = {
@@ -76,6 +79,7 @@ const initialState: State = {
   nextHurdleIn: 2,
   nextPowerUpIn: C.POWERUP_SPAWN_INTERVAL.MIN,
   theme: 0,
+  isFlappyMode: false,
 };
 
 function gameReducer(state: State, action: Action): State {
@@ -91,11 +95,23 @@ function gameReducer(state: State, action: Action): State {
         gameState: 'playing',
       };
     case 'JUMP':
-      if (!state.character.isJumping) {
+      if (state.isFlappyMode) {
         soundManager.playJump();
         return {
           ...state,
-          character: { ...state.character, isJumping: true, vy: C.JUMP_VELOCITY },
+          character: { ...state.character, vy: C.FLAPPY_JUMP_VELOCITY, isJumping: true },
+        };
+      }
+      if (state.character.jumpCount < 2) {
+        soundManager.playJump();
+        return {
+          ...state,
+          character: { 
+            ...state.character, 
+            isJumping: true, 
+            vy: C.JUMP_VELOCITY,
+            jumpCount: state.character.jumpCount + 1,
+          },
         };
       }
       return state;
@@ -117,7 +133,7 @@ function gameReducer(state: State, action: Action): State {
       const { deltaTime } = action;
 
       // Update Character
-      let { y, vy, isJumping } = state.character;
+      let { y, vy, isJumping, jumpCount } = state.character;
       vy += C.GRAVITY * deltaTime;
       y += vy * deltaTime;
 
@@ -125,12 +141,17 @@ function gameReducer(state: State, action: Action): State {
         y = C.GROUND_HEIGHT;
         vy = 0;
         isJumping = false;
+        jumpCount = 0;
       }
 
       // Update timers and score
       const newScore = state.score + deltaTime * state.gameSpeed * 2;
       const newGameSpeed = state.gameSpeed + C.GAME_SPEED_INCREMENT * deltaTime;
       const newShieldTimer = Math.max(0, state.shieldTimer - deltaTime);
+
+      // Check for flappy mode
+      const isFlappyMode = newScore >= 2000;
+
 
       // Update Obstacles
       const updatedObstacles = state.obstacles
@@ -183,9 +204,9 @@ function gameReducer(state: State, action: Action): State {
         const newHurdle: Obstacle = {
           id: obstacleIdCounter++,
           x: C.GAME_WIDTH,
-          y: C.GROUND_HEIGHT,
+          y: isFlappyMode ? C.GROUND_HEIGHT + Math.random() * (C.GAME_HEIGHT - 200) : C.GROUND_HEIGHT,
           width: C.HURDLE_WIDTH,
-          height: isHigh ? C.HURDLE_HEIGHT_HIGH : C.HURDLE_HEIGHT_LOW,
+          height: isFlappyMode ? 150 + Math.random() * 50 : (isHigh ? C.HURDLE_HEIGHT_HIGH : C.HURDLE_HEIGHT_LOW),
           type: 'hurdle',
         };
         newObstacles.push(newHurdle);
@@ -213,12 +234,13 @@ function gameReducer(state: State, action: Action): State {
         ...state,
         score: newScore,
         gameSpeed: newGameSpeed,
-        character: { ...state.character, y, vy, isJumping },
+        character: { ...state.character, y, vy, isJumping, jumpCount },
         obstacles: newObstacles,
         shieldTimer: newShieldTimer,
         nextHurdleIn,
         nextPowerUpIn,
-        theme: newTheme
+        theme: newTheme,
+        isFlappyMode,
       };
     default:
       return state;
@@ -255,10 +277,10 @@ export default function Home() {
   }, [state.gameState]);
 
   const handleCrouch = useCallback((isDown: boolean) => {
-      if(state.gameState === 'playing') {
+      if(state.gameState === 'playing' && !state.isFlappyMode) {
           dispatch({type: isDown ? 'CROUCH_START' : 'CROUCH_END'})
       }
-  }, [state.gameState]);
+  }, [state.gameState, state.isFlappyMode]);
 
 
   useEffect(() => {
@@ -267,13 +289,13 @@ export default function Home() {
         e.preventDefault();
         handleJump();
       }
-      if (e.code === 'ArrowDown') {
+      if (e.code === 'ArrowDown' && !state.isFlappyMode) {
         e.preventDefault();
         handleCrouch(true);
       }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === 'ArrowDown') {
+      if (e.code === 'ArrowDown' && !state.isFlappyMode) {
         e.preventDefault();
         handleCrouch(false);
       }
@@ -285,7 +307,7 @@ export default function Home() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     }
-  }, [handleJump, handleCrouch]);
+  }, [handleJump, handleCrouch, state.isFlappyMode]);
 
   const gameLoop = useCallback((time: number) => {
     if (!lastTimeRef.current) {
@@ -374,14 +396,21 @@ export default function Home() {
              <div className="absolute top-4 right-4 text-lg font-bold text-primary-foreground bg-primary/80 px-3 py-1 rounded-lg shadow-md z-30">
               HI: {Math.floor(highScore)}
             </div>
+            {state.isFlappyMode && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl font-bold text-white/50 animate-pulse z-0">
+                    FLAPPY MODE
+                </div>
+            )}
           </>
         )}
       </div>
       {isMobile && state.gameState === 'playing' && (
-        <OnScreenControls onJump={handleJump} onCrouch={handleCrouch} />
+        <OnScreenControls onJump={handleJump} onCrouch={handleCrouch} disableCrouch={state.isFlappyMode} />
       )}
       <p className="mt-4 text-muted-foreground text-center text-sm">
         Use [↑] or [Space] to Jump, [↓] to Crouch.
+        <br />
+        Double jump is enabled. After 2000 points, it's Flappy time!
       </p>
     </main>
   );

@@ -14,6 +14,7 @@ export const CHARACTER_HEIGHT_CROUCH = 30;
 
 // Physics
 export const JUMP_VELOCITY = 800;
+export const FLAPPY_JUMP_VELOCITY = 400; // For flappy bird mode
 export const GRAVITY = -2500;
 export const GAME_SPEED_START = 50;
 export const GAME_SPEED_INCREMENT = 0.5;
@@ -22,7 +23,7 @@ export const GAME_SPEED_INCREMENT = 0.5;
 export const HURDLE_WIDTH = 30;
 export const HURDLE_HEIGHT_LOW = 40;
 export const HURDLE_HEIGHT_HIGH = 55;
-export const HURDLE_SPAWN_INTERVAL = { MIN: 2.5, MAX: 4.5 }; // in seconds at base speed
+export const HURDLE_SPAWN_INTERVAL = { MIN: 3.5, MAX: 5.5 };
 
 // Power-ups
 export const POWERUP_WIDTH = 30;
