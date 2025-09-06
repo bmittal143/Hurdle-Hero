@@ -22,7 +22,7 @@ export const GAME_SPEED_INCREMENT = 0.5;
 export const HURDLE_WIDTH = 30;
 export const HURDLE_HEIGHT_LOW = 40;
 export const HURDLE_HEIGHT_HIGH = 55;
-export const HURDLE_SPAWN_INTERVAL = { MIN: 1.5, MAX: 3.5 }; // in seconds at base speed
+export const HURDLE_SPAWN_INTERVAL = { MIN: 2.5, MAX: 4.5 }; // in seconds at base speed
 
 // Power-ups
 export const POWERUP_WIDTH = 30;

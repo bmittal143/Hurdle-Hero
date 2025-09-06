@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import * as C from '@/lib/game-constants';
 
@@ -12,7 +13,7 @@ interface CharacterProps {
     width: number;
     height: number;
   };
-  skin: number;
+  skin: number | string;
   shieldTimer: number;
 }
 
@@ -34,20 +35,34 @@ const Character: React.FC<CharacterProps> = ({ character, skin, shieldTimer }) =
     transition: 'height 0.1s ease-out',
   };
 
-  const skinClass = characterSkins[skin] || characterSkins[0];
+  const isCustomSkin = typeof skin === 'string';
+  const skinClass = !isCustomSkin ? characterSkins[skin as number] || characterSkins[0] : '';
 
   return (
     <div style={characterStyle} className="absolute z-10">
       {shieldTimer > 0 && (
         <div className="absolute -inset-2 rounded-full bg-accent/50 animate-pulse" />
       )}
-      <div
-        className={cn(
-          "w-full h-full rounded-md shadow-lg transform duration-100",
-          skinClass,
-          isCrouching ? 'scale-y-90' : '',
-        )}
-      />
+      {isCustomSkin ? (
+        <Image
+          src={skin}
+          alt="Custom character"
+          width={width}
+          height={height}
+          className={cn(
+            "w-full h-full object-cover rounded-md shadow-lg transform duration-100",
+            isCrouching ? 'scale-y-90' : '',
+          )}
+        />
+      ) : (
+        <div
+          className={cn(
+            "w-full h-full rounded-md shadow-lg transform duration-100",
+            skinClass,
+            isCrouching ? 'scale-y-90' : '',
+          )}
+        />
+      )}
     </div>
   );
 };

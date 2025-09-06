@@ -47,7 +47,7 @@ interface State {
 }
 
 type Action =
-  | { type: 'START_GAME'; skin: number }
+  | { type: 'START_GAME' }
   | { type: 'RESTART' }
   | { type: 'JUMP' }
   | { type: 'CROUCH_START' }
@@ -177,7 +177,7 @@ function gameReducer(state: State, action: Action): State {
 
       // Spawn new obstacles
       let { nextHurdleIn, nextPowerUpIn } = state;
-      nextHurdleIn -= deltaTime * newGameSpeed;
+      nextHurdleIn -= deltaTime * newGameSpeed / 50;
       if (nextHurdleIn <= 0) {
         const isHigh = Math.random() > 0.6;
         const newHurdle: Obstacle = {
@@ -228,7 +228,7 @@ function gameReducer(state: State, action: Action): State {
 
 export default function Home() {
   const [state, dispatch] = useReducer(gameReducer, initialState);
-  const [characterSkin, setCharacterSkin] = useState(0);
+  const [characterSkin, setCharacterSkin] = useState<number | string>(0);
   const [highScore, setHighScore] = useState(0);
   const isMobile = useIsMobile();
   const lastTimeRef = useRef<number | null>(null);
@@ -238,11 +238,11 @@ export default function Home() {
     setHighScore(Number(localStorage.getItem('hurdleHeroHighScore') || 0));
   }, []);
 
-  const handleStartGame = useCallback((skin: number) => {
+  const handleStartGame = useCallback((skin: number | string) => {
     soundManager.startAudio();
     soundManager.playBGM();
     setCharacterSkin(skin);
-    dispatch({ type: 'START_GAME', skin });
+    dispatch({ type: 'START_GAME' });
   }, []);
 
   const handleRestart = useCallback(() => {
