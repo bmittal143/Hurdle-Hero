@@ -36,11 +36,8 @@ const generateHeroFlow = ai.defineFlow(
   },
   async input => {
     const { media } = await ai.generate({
-      model: 'googleai/imagen-4.0-fast-generate-001',
-      prompt: `Generate a full-body 8-bit pixel art sprite of a video game character. The character should be facing right, suitable for a side-scrolling game. The background must be transparent. The character is: ${input.prompt}`,
-      config: {
-        aspectRatio: '9:16',
-      },
+      model: 'googleai/gemini-pro-vision',
+      prompt: `Generate a full-body 8-bit pixel art sprite of a video game character, facing right, for a side-scrolling game. The background must be transparent. Character description: ${input.prompt}`,
     });
 
     if (!media.url) {
